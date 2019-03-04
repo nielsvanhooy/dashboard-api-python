@@ -4082,3 +4082,56 @@ def getmxperf(apikey, networkid, serial, suppressprint=False):
     result = __returnhandler(
         dashboard.status_code, dashboard.text, calltype, suppressprint)
     return result
+
+# Lists the HTTPServers for a network. Only valid for MX networks.
+def gethttpsserver(apikey, networkid, suppressprint=False):
+    calltype = 'httpServers'
+    geturl = '{0}/networks/{1}/httpServers'.format(str(base_url), str(networkid))
+    headers = {
+        'x-cisco-meraki-api-key': format(str(apikey)),
+        'Content-Type': 'application/json'
+    }
+    dashboard = requests.get(geturl, headers=headers)
+    #
+    # Call return handler function to parse Dashboard response
+    #
+    result = __returnhandler(
+        dashboard.status_code, dashboard.text, calltype, suppressprint)
+    return result
+
+# Return a HTTPServer
+
+def gethttpserverdetail(apikey, networkid, httpserverid, suppressprint=False):
+    calltype = 'HTTP Detail'
+    geturl = '{0}/networks/{1}/httpServers/{2}'.format(
+        str(base_url), str(networkid), str(httpserverid))
+    headers = {
+        'x-cisco-meraki-api-key': format(str(apikey)),
+        'Content-Type': 'application/json'
+    }
+    dashboard = requests.get(geturl, headers=headers)
+    #
+    # Call return handler function to parse Dashboard response
+    #
+    result = __returnhandler(
+        dashboard.status_code, dashboard.text, calltype, suppressprint)
+    return result
+
+# Add a HTTP Server
+def addhttpsserver(apikey, networkid, id, name, url, sharedSecret, suppressprint=False):
+    calltype = 'Add HTTP Server'
+    posturl = '{0}/networks/{1}/httpServers'.format(str(base_url), str(networkid))
+    headers = {
+        'x-cisco-meraki-api-key': format(str(apikey)),
+        'Content-Type': 'application/json'
+    }
+    postdata = {
+        'id': format(str(id)),
+        'networkId': format(str(networkid)),
+        'name': format(str(name)),
+        'url': format(str(url)),
+        'sharedSecret': format(str(sharedSecret))
+    }
+    result = __returnhandler(
+        dashboard.status_code, dashboard.text, calltype, suppressprint)
+    return result
