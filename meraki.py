@@ -4251,3 +4251,41 @@ def getsingleswitchstacks(apikey, networkid, switchstackid, suppressprint=False)
     result = __returnhandler(
         dashboard.status_code, dashboard.text, calltype, suppressprint)
     return result
+
+def addswitchtostack(apikey, networkid, switchstackid, serial, suppressprint=False):
+    calltype = 'Add switch to stack'
+    posturl = '{0}/networks/{1}/switchStacks/{2}/add'.format(str(base_url), str(networkid), str(switchstackid))
+    headers = {
+        'x-cisco-meraki-api-key': format(str(apikey)),
+        'Content-Type': 'application/json'
+    }
+    postdata = {
+        'serial': format(str(serial))
+    }
+    postdata = json.dumps(postdata)
+    dashboard = requests.post(posturl, data=postdata, headers=headers)
+    #
+    # Call return handler function to parse Dashboard response
+    #
+    result = __returnhandler(
+        dashboard.status_code, dashboard.text, calltype, suppressprint)
+    return result
+
+def delswitchfromstack(apikey, networkid, switchstackid, serial, suppressprint=False):
+    calltype = 'Delete HTTP Server'
+    posturl = '{0}/networks/{1}/switchStacks/{2}/remove'.format(str(base_url), str(networkid), str(switchstackid))
+    headers = {
+        'x-cisco-meraki-api-key': format(str(apikey)),
+        'Content-Type': 'application/json'
+    }
+    postdata = {
+        'serial': format(str(serial))
+    }
+    postdata = json.dumps(postdata)
+    dashboard = requests.post(posturl, data=postdata, headers=headers)
+    #
+    # Call return handler function to parse Dashboard response
+    #
+    result = __returnhandler(
+        dashboard.status_code, dashboard.text, calltype, suppressprint)
+    return result
