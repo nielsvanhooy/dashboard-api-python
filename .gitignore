@@ -1,4 +1,6 @@
 .DS_Store
+__init__.py
+test.py
 # No PyCharm config files
 .idea/
 venv/

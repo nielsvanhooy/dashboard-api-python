@@ -4223,7 +4223,23 @@ def updatealertsettings(apikey, networkid, httpserverid, suppressprint=False):
 #Switchstacks
 def getswitchstacks(apikey, networkid, suppressprint=False):
     calltype ='Get Switch stacks in a network'
-    geturl = '{0}/networks/{1}switchStacks'.format(str(base_url), str(networkid))
+    geturl = '{0}/networks/{1}/switchStacks'.format(str(base_url), str(networkid))
+    headers = {
+        'x-cisco-meraki-api-key': format(str(apikey)),
+        'Content-Type': 'application/json'
+    }
+    dashboard = requests.get(geturl, headers=headers)
+    #
+    # Call return handler function to parse Dashboard response
+    #
+    result = __returnhandler(
+        dashboard.status_code, dashboard.text, calltype, suppressprint)
+    return result
+
+
+def getsingleswitchstacks(apikey, networkid, switchstackid, suppressprint=False):
+    calltype ='Gets a single Switch Stack in a network'
+    geturl = '{0}/networks/{1}/switchStacks/{2}'.format(str(base_url), str(networkid), str(switchstackid))
     headers = {
         'x-cisco-meraki-api-key': format(str(apikey)),
         'Content-Type': 'application/json'
