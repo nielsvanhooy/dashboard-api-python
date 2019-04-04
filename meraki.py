@@ -1711,6 +1711,54 @@ def getlldpcdp(apikey, networkid, serial, timespan=10800, suppressprint=False):
     return result
 
 
+def rebootdev(apikey, networkid, serialnumber, suppressprint=False):
+    calltype = 'Reboot Device'
+    posturl = '{0}/networks/{1}/devices/{2}/reboot'.format(str(base_url), str(networkid), str(serialnumber))
+    headers = {
+        'x-cisco-meraki-api-key': format(str(apikey)),
+        'Content-Type': 'application/json'
+    }
+    dashboard = requests.post(posturl, headers=headers)
+    #
+    # Call return handler function to parse Dashboard response
+    #
+    result = __returnhandler(
+        dashboard.status_code, dashboard.text, calltype, suppressprint)
+    return result
+
+def blinkleds(apikey, networkid, serialnumber, duration=None, period=None, duty=None, suppressprint=False):
+
+    """
+    :param duration: The duration in seconds. Must be between 5 and 120. Default is 20 seconds
+    :param period: The period in milliseconds. Must be between 100 and 1000. Default is 160 milliseconds
+    :param duty: The duty cycle as the percent active. Must be between 10 and 90. Default is 50.
+    """
+    calltype = 'Blink Leds'
+    posturl = '{0}/networks/{1}/devices/{2}/blinkLeds'.format(str(base_url), str(networkid), str(serialnumber))
+    headers = {
+        'x-cisco-meraki-api-key': format(str(apikey)),
+        'Content-Type': 'application/json'
+    }
+    postdata = {}
+
+    if duration is not None:
+        postdata['duration'] = format(int(duration))
+
+    if period is not None:
+        postdata['period'] = format(int(period))
+
+    if duty is not None:
+        postdata['duty'] = format(int(period))
+
+    postdata = json.dumps(postdata)
+    dashboard = requests.post(posturl, data=postdata, headers=headers)
+    #
+    # Call return handler function to parse Dashboard response
+    #
+    result = __returnhandler(
+        dashboard.status_code, dashboard.text, calltype, suppressprint)
+    return result
+
 # ### MX cellular firewall###
 
 # Return the cellular firewall rules for an MX network
