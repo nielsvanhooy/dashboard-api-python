@@ -4271,7 +4271,7 @@ def addswitchtostack(apikey, networkid, switchstackid, serial, suppressprint=Fal
         dashboard.status_code, dashboard.text, calltype, suppressprint)
     return result
 
-def delswitchfromstack(apikey, networkid, switchstackid, serial, suppressprint=False):
+def delswitchfromstack(apikey, networkid, switchstackid, serials, suppressprint=False):
     calltype = 'Delete HTTP Server'
     posturl = '{0}/networks/{1}/switchStacks/{2}/remove'.format(str(base_url), str(networkid), str(switchstackid))
     headers = {
@@ -4289,3 +4289,38 @@ def delswitchfromstack(apikey, networkid, switchstackid, serial, suppressprint=F
     result = __returnhandler(
         dashboard.status_code, dashboard.text, calltype, suppressprint)
     return result
+
+def createswitchstack(apikey, networkid, name, serials, suppressprint=False):
+    calltype = 'Create Switch Stack'
+    posturl = '{0}/networks/{1}/switchStacks'.format(str(base_url), str(networkid))
+    headers = {
+        'x-cisco-meraki-api-key': format(str(apikey)),
+        'Content-Type': 'application/json'
+    }
+    postdata = {
+        'name': format(str(name)),
+        'serials': serials
+    }
+    postdata = json.dumps(postdata)
+    dashboard = requests.post(posturl, data=postdata, headers=headers)
+    #
+    # Call return handler function to parse Dashboard response
+    #
+    result = __returnhandler(
+        dashboard.status_code, dashboard.text, calltype, suppressprint)
+    return result
+
+def deleteswitchstack(apikey, networkid, switchstackid, suppressprint=False):
+    calltype = 'Delete Switch Stack'
+    delurl = '{0}/networks/{1}/switchStacks/{2}/'.format(str(base_url), str(networkid), str(switchstackid))
+    headers = {
+        'x-cisco-meraki-api-key': format(str(apikey)),
+        'Content-Type': 'application/json'
+    }
+    dashboard = requests.delete(delurl, headers=headers)
+    #
+    # Call return handler function to parse Dashboard response
+    #
+    result = __returnhandler(dashboard.status_code, dashboard.text, calltype, suppressprint)
+    return result
+
