@@ -21,7 +21,6 @@ from ipaddress import ip_address
 import re
 import warnings
 
-
 base_url = 'https://api.meraki.com/api/v0'
 
 tzlist = ['Africa/Abidjan',
@@ -678,6 +677,7 @@ class ListError(Error):
     Raised when empty list is passed when required
 
     """
+
     def __init__(self, message):
         self.message = message
 
@@ -839,7 +839,6 @@ def __hasorgaccess(apikey, targetorg):
 
 
 def __validemail(emailaddress):
-
     """
 
     Args:
@@ -1015,6 +1014,63 @@ def __returnhandler(
               '\n'.format(str(statuscode)))
 
 
+################################################################## START OF API CALLS ################################################################
+
+# ### API USAGE ###
+# Lists the api requests and usage
+# https://api.meraki.com/api_docs#list-the-api-requests-made-by-an-organization
+# #List API Usage and requests made
+def listAPIreqs(apikey, orgid, timespan=86400, perPage=None, startingAfter=None, endingBefore=None, adminId=None,
+                path=None, method=None, suppressprint=False):
+    """
+    :param timespan: The timespan for which the information will be fetched. If specifying timespan, do not specify parameters t0 and t1.
+                     The value must be in seconds and be less than or equal to 31 days. The default is 31 days.
+    :param perPage: The number of entries per page returned. Acceptable range is 3 - 1000. Default is 50.
+    :param startingAfter: A token used by the server to indicate the start of the page. Often this is a timestamp or an ID but it is not limited to those.
+                          This parameter should not be defined by client applications. The link for the first, last, prev, or next page in the HTTP Link header should define it.
+    :param endingBefore: A token used by the server to indicate the end of the page. Often this is a timestamp or an ID but it is not limited to those.
+                         This parameter should not be defined by client applications. The link for the first, last, prev, or next page in the HTTP Link header should define it.
+    :param adminId: Filter the results by the ID of the admin who made the API requests
+    :param path: Filter the results by the path of the API requests
+    :param method: Filter the results by the method of the API requests (must be 'GET', 'PUT', 'POST' or 'DELETE')
+    """
+    calltype = 'list API usage and requests'
+    geturl = '{0}/organizations/{1}/apiRequests'.format(str(base_url), str(orgid))
+    headers = {
+        'x-cisco-meraki-api-key': format(str(apikey)),
+        'Content-Type': 'application/json'
+    }
+    getdata = {}
+
+    if perPage is not None:
+        getdata['perPage'] = format(int(perPage))
+
+    if startingAfter is not None:
+        getdata['startingAfter'] = format(str(startingAfter))
+
+    if endingBefore is not None:
+        getdata['endingBefore'] = format(str(endingBefore))
+
+    if adminId is not None:
+        getdata['adminId'] = format(str(adminId))
+
+    if path is not None:
+        getdata['path'] = format(str(path))
+
+    if method is not None:
+        getdata['method'] = format(str(method))
+
+    getdata = json.dumps(getdata)
+    print(getdata)
+    dashboard = requests.get(geturl, getdata, headers=headers)
+    #
+    # Call return handler function to parse Dashboard response
+    #
+    result = __returnhandler(
+        dashboard.status_code, dashboard.text, calltype, suppressprint)
+    return result
+
+
 # ### ADMINS ###
 # List the dashboard administrators in this organization
 # https://api.meraki.com/api_docs#list-the-dashboard-administrators-in-this-organization
@@ -1180,7 +1236,7 @@ def updateadmin(apikey, orgid, adminid, email, name=None, orgaccess=None,
     headers = {
         'x-cisco-meraki-api-key': format(str(apikey)),
         'Content-Type': 'application/json'
-        }
+    }
 
     puttags = []
 
@@ -1261,7 +1317,7 @@ def updateadmin(apikey, orgid, adminid, email, name=None, orgaccess=None,
                 'email': format(str(email)),
                 'orgAccess': orgaccess,
                 'tags': puttags
-                }
+            }
 
         elif len(putnets) > 0 and len(puttags) == 0:
             putdata = {
@@ -1269,7 +1325,7 @@ def updateadmin(apikey, orgid, adminid, email, name=None, orgaccess=None,
                 'email': format(str(email)),
                 'orgAccess': orgaccess,
                 'networks': putnets
-                }
+            }
 
         elif len(putnets) > 0 and len(puttags) > 0:
             putdata = {
@@ -1278,7 +1334,7 @@ def updateadmin(apikey, orgid, adminid, email, name=None, orgaccess=None,
                 'orgAccess': orgaccess,
                 'tags': puttags,
                 'networks': putnets
-                }
+            }
 
     elif name is None:
         if len(puttags) > 0 and len(putnets) == 0:
@@ -1286,14 +1342,14 @@ def updateadmin(apikey, orgid, adminid, email, name=None, orgaccess=None,
                 'email': format(str(email)),
                 'orgAccess': orgaccess,
                 'tags': puttags
-                }
+            }
 
         elif len(putnets) > 0 and len(puttags) == 0:
             putdata = {
                 'email': format(str(email)),
                 'orgAccess': orgaccess,
                 'networks': putnets
-                }
+            }
 
         elif len(putnets) > 0 and len(puttags) > 0:
             putdata = {
@@ -1301,7 +1357,7 @@ def updateadmin(apikey, orgid, adminid, email, name=None, orgaccess=None,
                 'orgAccess': orgaccess,
                 'tags': puttags,
                 'networks': putnets
-                }
+            }
 
     dashboard = requests.put(puturl, data=json.dumps(putdata), headers=headers)
     #
@@ -1521,6 +1577,82 @@ def deltemplate(apikey, orgid, templateid, suppressprint=False):
         dashboard.status_code, dashboard.text, calltype, suppressprint)
     return result
 
+# ### Content Filtering categories ###
+# List all avaible content filtering categories for meraki networks
+def listcontentcategories(apikey, networkid, suppressprint=False):
+    calltype = 'List all available categories for content filtering'
+    geturl = '{0}/networks/{1}/contentFiltering/categories'.format(str(base_url), str(networkid))
+    headers = {
+        'x-cisco-meraki-api-key': format(str(apikey)),
+        'Content-Type': 'application/json'
+    }
+    dashboard = requests.get(geturl, headers=headers)
+    #
+    # Call return handler function to parse Dashboard response
+    #
+    result = __returnhandler(
+        dashboard.status_code, dashboard.text, calltype, suppressprint)
+    return result
+
+# ### Content Filtering rules ###
+# Return the content filtering settinsg for an MX network
+# https://api.meraki.com/api_docs#return-the-content-filtering-settings-for-an-mx-network
+def getcontentfilter(apikey, networkid, suppressprint=False):
+    calltype = "Return the content filtering settings for an MX network"
+    geturl = '{0}/networks/{1}/contentFiltering'.format(str(base_url), str(networkid))
+    headers = {
+        'x-cisco-meraki-api-key': format(str(apikey)),
+        'Content-Type': 'application/json'
+    }
+    dashboard = requests.get(geturl, headers=headers)
+    #
+    # Call return handler function to parse Dashboard response
+    #
+    result = __returnhandler(
+        dashboard.status_code, dashboard.text, calltype, suppressprint)
+    return result
+
+
+# Update the content filtering settins for an MX network
+def updatecontentfilter(apikey, networkid, allowedUrlPatterns=None, blockedUrlPatterns=None, blockedUrlCategories=None,
+                        urlCategoryListSize=None, suppressprint=False):
+    """
+    :param allowdUrlPatterns: A whitelist of URL patterns to allow -- usage: []
+    :param blockedUrlPatterns: A blacklist of URL patterns to block -- usage: []
+    :param blockedUrlCategories: A list of URL categories to block -- usage: [] see the normal dashboard content filter for the names of the groups
+    :param urlCategoryListSize: URL category list size which is either the string: 'topSites' or 'fullList'
+    """
+    calltype = 'Update content filter for a network'
+    puturl = '{0}/networks/{1}/contentFiltering'.format(str(base_url), str(networkid))
+    headers = {
+        'x-cisco-meraki-api-key': format(str(apikey)),
+        'Content-Type': 'application/json'
+    }
+    putdata = {}
+
+    if allowedUrlPatterns is not None:
+        putdata['allowedUrlPatterns'] = allowedUrlPatterns
+
+    if blockedUrlPatterns is not None:
+        putdata['blockedUrlPatterns'] = blockedUrlPatterns
+
+    if blockedUrlCategories is not None:
+        putdata['blockedUrlCategories'] = blockedUrlCategories
+
+    if urlCategoryListSize is not None:
+        if urlCategoryListSize == "topSites" or urlCategoryListSize == "fullList":
+            putdata['urlCategoryListSize'] = format(str(urlCategoryListSize))
+        else:
+            pass
+
+    putdata = json.dumps(putdata)
+
+    dashboard = requests.put(puturl, data=putdata, headers=headers)
+    # Call return handler function to parse Dashboard response
+    result = __returnhandler(
+        dashboard.status_code, dashboard.text, calltype, suppressprint)
+    return result
+
 
 # ### DEVICES ###
 # List the devices in a network
@@ -1710,12 +1842,18 @@ def getlldpcdp(apikey, networkid, serial, timespan=10800, suppressprint=False):
         dashboard.status_code, dashboard.text, calltype, suppressprint)
     return result
 
+
 # The uplink loss percentage and latency for wired network device.
 # https://api.meraki.com/api_docs#get-the-uplink-loss-percentage-and-latency-in-milliseconds-for-a-wired-network-device
 def getlosslatencyhistorysimple(apikey, networkid, serialnum, ip, uplink, timespan=86400, suppressprint=False):
     """Simple becuase based on default timespan can be overriden use getlosslatencyhistoryadvanced for a specific T0 and T1"""
     calltype = 'Network Loss and Latency History'
-    geturl = '{0}/networks/{1}/devices/{2}/lossAndLatencyHistory?ip={3}&timespan={4}&uplink={5}'.format(str(base_url), str(networkid), str(serialnum), str(ip), str(timespan), str(uplink))
+    geturl = '{0}/networks/{1}/devices/{2}/lossAndLatencyHistory?ip={3}&timespan={4}&uplink={5}'.format(str(base_url),
+                                                                                                        str(networkid),
+                                                                                                        str(serialnum),
+                                                                                                        str(ip),
+                                                                                                        str(timespan),
+                                                                                                        str(uplink))
     headers = {
         'x-cisco-meraki-api-key': format(str(apikey)),
         'Content-Type': 'application/json'
@@ -1726,6 +1864,7 @@ def getlosslatencyhistorysimple(apikey, networkid, serialnum, ip, uplink, timesp
     #
     result = __returnhandler(dashboard.status_code, dashboard.text, calltype, suppressprint)
     return result
+
 
 def rebootdev(apikey, networkid, serialnumber, suppressprint=False):
     calltype = 'Reboot Device'
@@ -1742,8 +1881,8 @@ def rebootdev(apikey, networkid, serialnumber, suppressprint=False):
         dashboard.status_code, dashboard.text, calltype, suppressprint)
     return result
 
-def blinkleds(apikey, networkid, serialnumber, duration=None, period=None, duty=None, suppressprint=False):
 
+def blinkleds(apikey, networkid, serialnumber, duration=None, period=None, duty=None, suppressprint=False):
     """
     :param duration: The duration in seconds. Must be between 5 and 120. Default is 20 seconds
     :param period: The period in milliseconds. Must be between 100 and 1000. Default is 160 milliseconds
@@ -1774,6 +1913,7 @@ def blinkleds(apikey, networkid, serialnumber, duration=None, period=None, duty=
     result = __returnhandler(
         dashboard.status_code, dashboard.text, calltype, suppressprint)
     return result
+
 
 # ### MX cellular firewall###
 
@@ -2035,7 +2175,6 @@ def getnetworkdetail(apikey, networkid, suppressprint=False):
 # Update a network
 # https://api.meraki.com/api_docs#update-a-network
 def updatenetwork(apikey, networkid, name, tz, tags, suppressprint=False):
-
     calltype = 'Network'
     puturl = '{0}/networks/{1}'.format(str(base_url), str(networkid))
     headers = {
@@ -3661,7 +3800,6 @@ def getssiddetail(apikey, networkid, ssidnum, suppressprint=False):
 # https://api.meraki.com/api_docs#update-the-attributes-of-an-ssid
 def updatessid(apikey, networkid, ssidnum, name, enabled, authmode,
                encryptionmode, psk, suppressprint=False):
-
     calltype = 'SSID'
     puturl = '{0}/networks/{1}/ssids/{2}'.format(
         str(base_url), str(networkid), str(ssidnum))
@@ -3916,7 +4054,6 @@ def updateswitchport(apikey, serialnum, portnum, name=None, tags=None,
                      enabled=None, porttype=None, vlan=None, voicevlan=None,
                      allowedvlans=None, poe=None, isolation=None, rstp=None,
                      stpguard=None, accesspolicynum=None, suppressprint=False):
-
     calltype = 'Switch Port'
     puturl = '{0}/devices/{1}/switchPorts/{2}'.format(
         str(base_url), str(serialnum), str(portnum))
@@ -4147,6 +4284,7 @@ def getmxperf(apikey, networkid, serial, suppressprint=False):
         dashboard.status_code, dashboard.text, calltype, suppressprint)
     return result
 
+
 # HTTP SERVER SECTION #
 # Lists the HTTPServers for a network. Only valid for MX networks.
 def gethttpsserver(apikey, networkid, suppressprint=False):
@@ -4163,6 +4301,7 @@ def gethttpsserver(apikey, networkid, suppressprint=False):
     result = __returnhandler(
         dashboard.status_code, dashboard.text, calltype, suppressprint)
     return result
+
 
 # Return a HTTPServer
 def gethttpserverdetail(apikey, networkid, httpserverid, suppressprint=False):
@@ -4181,8 +4320,9 @@ def gethttpserverdetail(apikey, networkid, httpserverid, suppressprint=False):
         dashboard.status_code, dashboard.text, calltype, suppressprint)
     return result
 
+
 # Update a HTTP Server
-def updatehttpsserver(apikey, networkid, httpserverid ,name, url, sharedSecret, suppressprint=False):
+def updatehttpsserver(apikey, networkid, httpserverid, name, url, sharedSecret, suppressprint=False):
     calltype = 'Update HTTP Server'
     puturl = '{0}/networks/{1}/httpServers/{2}'.format(str(base_url), str(networkid), str(httpserverid))
     headers = {
@@ -4204,6 +4344,7 @@ def updatehttpsserver(apikey, networkid, httpserverid ,name, url, sharedSecret, 
     result = __returnhandler(
         dashboard.status_code, dashboard.text, calltype, suppressprint)
     return result
+
 
 # Add a HTTP Server
 def addhttpsserver(apikey, networkid, id, name, url, sharedSecret, suppressprint=False):
@@ -4229,6 +4370,7 @@ def addhttpsserver(apikey, networkid, id, name, url, sharedSecret, suppressprint
         dashboard.status_code, dashboard.text, calltype, suppressprint)
     return result
 
+
 # Delete a HTTP Server
 def delhttpserver(apikey, networkid, httpserverid, suppressprint=False):
     calltype = 'Delete HTTP Server'
@@ -4241,8 +4383,10 @@ def delhttpserver(apikey, networkid, httpserverid, suppressprint=False):
     #
     # Call return handler function to parse Dashboard response
     #
-    result = __returnhandler(dashboard.status_code, dashboard.text, calltype, suppressprint)
+    result = __returnhandler(
+        dashboard.status_code, dashboard.text, calltype, suppressprint)
     return result
+
 
 # Alerts #
 # Return Alert Config
@@ -4261,6 +4405,7 @@ def getalertsettings(apikey, networkid, suppressprint=False):
         dashboard.status_code, dashboard.text, calltype, suppressprint)
     return result
 
+
 ## Only has function for now to add webhook as a recipient ##
 def updatealertsettings(apikey, networkid, httpserverid, suppressprint=False):
     calltype = 'Update Alert Settings'
@@ -4271,9 +4416,9 @@ def updatealertsettings(apikey, networkid, httpserverid, suppressprint=False):
     }
     putdata = {
         "defaultDestinations": {
-        'httpServerIds': [format(str(httpserverid))],
+            'httpServerIds': [format(str(httpserverid))],
         }
-    }	
+    }
     putdata = json.dumps(putdata)
     print(putdata)
     dashboard = requests.put(puturl, data=putdata, headers=headers)
@@ -4284,9 +4429,10 @@ def updatealertsettings(apikey, networkid, httpserverid, suppressprint=False):
         dashboard.status_code, dashboard.text, calltype, suppressprint)
     return result
 
-#Switchstacks
+
+# Switchstacks
 def getswitchstacks(apikey, networkid, suppressprint=False):
-    calltype ='Get Switch stacks in a network'
+    calltype = 'Get Switch stacks in a network'
     geturl = '{0}/networks/{1}/switchStacks'.format(str(base_url), str(networkid))
     headers = {
         'x-cisco-meraki-api-key': format(str(apikey)),
@@ -4302,7 +4448,7 @@ def getswitchstacks(apikey, networkid, suppressprint=False):
 
 
 def getsingleswitchstacks(apikey, networkid, switchstackid, suppressprint=False):
-    calltype ='Gets a single Switch Stack in a network'
+    calltype = 'Gets a single Switch Stack in a network'
     geturl = '{0}/networks/{1}/switchStacks/{2}'.format(str(base_url), str(networkid), str(switchstackid))
     headers = {
         'x-cisco-meraki-api-key': format(str(apikey)),
@@ -4315,6 +4461,7 @@ def getsingleswitchstacks(apikey, networkid, switchstackid, suppressprint=False)
     result = __returnhandler(
         dashboard.status_code, dashboard.text, calltype, suppressprint)
     return result
+
 
 def addswitchtostack(apikey, networkid, switchstackid, serial, suppressprint=False):
     calltype = 'Add switch to stack'
@@ -4335,6 +4482,7 @@ def addswitchtostack(apikey, networkid, switchstackid, serial, suppressprint=Fal
         dashboard.status_code, dashboard.text, calltype, suppressprint)
     return result
 
+
 def delswitchfromstack(apikey, networkid, switchstackid, serials, suppressprint=False):
     calltype = 'Delete HTTP Server'
     posturl = '{0}/networks/{1}/switchStacks/{2}/remove'.format(str(base_url), str(networkid), str(switchstackid))
@@ -4353,6 +4501,7 @@ def delswitchfromstack(apikey, networkid, switchstackid, serials, suppressprint=
     result = __returnhandler(
         dashboard.status_code, dashboard.text, calltype, suppressprint)
     return result
+
 
 def createswitchstack(apikey, networkid, name, serials, suppressprint=False):
     calltype = 'Create Switch Stack'
@@ -4374,6 +4523,7 @@ def createswitchstack(apikey, networkid, name, serials, suppressprint=False):
         dashboard.status_code, dashboard.text, calltype, suppressprint)
     return result
 
+
 def deleteswitchstack(apikey, networkid, switchstackid, suppressprint=False):
     calltype = 'Delete Switch Stack'
     delurl = '{0}/networks/{1}/switchStacks/{2}/'.format(str(base_url), str(networkid), str(switchstackid))
@@ -4385,6 +4535,6 @@ def deleteswitchstack(apikey, networkid, switchstackid, suppressprint=False):
     #
     # Call return handler function to parse Dashboard response
     #
-    result = __returnhandler(dashboard.status_code, dashboard.text, calltype, suppressprint)
+    result = __returnhandler(
+        dashboard.status_code, dashboard.text, calltype, suppressprint)
     return result
-
