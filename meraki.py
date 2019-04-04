@@ -1710,6 +1710,22 @@ def getlldpcdp(apikey, networkid, serial, timespan=10800, suppressprint=False):
         dashboard.status_code, dashboard.text, calltype, suppressprint)
     return result
 
+# The uplink loss percentage and latency for wired network device.
+# https://api.meraki.com/api_docs#get-the-uplink-loss-percentage-and-latency-in-milliseconds-for-a-wired-network-device
+def getlosslatencyhistorysimple(apikey, networkid, serialnum, ip, uplink, timespan=86400, suppressprint=False):
+    """Simple becuase based on default timespan can be overriden use getlosslatencyhistoryadvanced for a specific T0 and T1"""
+    calltype = 'Network Loss and Latency History'
+    geturl = '{0}/networks/{1}/devices/{2}/lossAndLatencyHistory?ip={3}&timespan={4}&uplink={5}'.format(str(base_url), str(networkid), str(serialnum), str(ip), str(timespan), str(uplink))
+    headers = {
+        'x-cisco-meraki-api-key': format(str(apikey)),
+        'Content-Type': 'application/json'
+    }
+    dashboard = requests.get(geturl, headers=headers)
+    #
+    # Call return handler function to parse Dashboard response
+    #
+    result = __returnhandler(dashboard.status_code, dashboard.text, calltype, suppressprint)
+    return result
 
 def rebootdev(apikey, networkid, serialnumber, suppressprint=False):
     calltype = 'Reboot Device'
