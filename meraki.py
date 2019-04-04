@@ -1577,6 +1577,7 @@ def deltemplate(apikey, orgid, templateid, suppressprint=False):
         dashboard.status_code, dashboard.text, calltype, suppressprint)
     return result
 
+
 # ### Content Filtering categories ###
 # List all avaible content filtering categories for meraki networks
 def listcontentcategories(apikey, networkid, suppressprint=False):
@@ -1593,6 +1594,7 @@ def listcontentcategories(apikey, networkid, suppressprint=False):
     result = __returnhandler(
         dashboard.status_code, dashboard.text, calltype, suppressprint)
     return result
+
 
 # ### Content Filtering rules ###
 # Return the content filtering settinsg for an MX network
@@ -1614,13 +1616,13 @@ def getcontentfilter(apikey, networkid, suppressprint=False):
 
 
 # Update the content filtering settins for an MX network
-def updatecontentfilter(apikey, networkid, allowedUrlPatterns=None, blockedUrlPatterns=None, blockedUrlCategories=None,
-                        urlCategoryListSize=None, suppressprint=False):
+def updatecontentfilter(apikey, networkid, allowedurlpatterns=None, blockedurlpatterns=None, blockedurlcategories=None,
+                        urlcategorylistsize=None, suppressprint=False):
     """
-    :param allowdUrlPatterns: A whitelist of URL patterns to allow -- usage: []
-    :param blockedUrlPatterns: A blacklist of URL patterns to block -- usage: []
-    :param blockedUrlCategories: A list of URL categories to block -- usage: [] see the normal dashboard content filter for the names of the groups
-    :param urlCategoryListSize: URL category list size which is either the string: 'topSites' or 'fullList'
+    :param allowedurlpatterns: a whitelist of url patterns to allow -- usage: []
+    :param blockedurlpatterns: a blacklist of url patterns to block -- usage: []
+    :param blockedurlcategories: a list of url categories to block -- usage: [] see the normal dashboard content filter for the names of the groups
+    :param urlcategorylistsize: url category list size which is either the string: 'topsites' or 'fulllist'
     """
     calltype = 'Update content filter for a network'
     puturl = '{0}/networks/{1}/contentFiltering'.format(str(base_url), str(networkid))
@@ -1630,18 +1632,18 @@ def updatecontentfilter(apikey, networkid, allowedUrlPatterns=None, blockedUrlPa
     }
     putdata = {}
 
-    if allowedUrlPatterns is not None:
-        putdata['allowedUrlPatterns'] = allowedUrlPatterns
+    if allowedurlpatterns is not None:
+        putdata['allowedurlpatterns'] = allowedurlpatterns
 
-    if blockedUrlPatterns is not None:
-        putdata['blockedUrlPatterns'] = blockedUrlPatterns
+    if blockedurlpatterns is not None:
+        putdata['blockedurlpatterns'] = blockedurlpatterns
 
-    if blockedUrlCategories is not None:
-        putdata['blockedUrlCategories'] = blockedUrlCategories
+    if blockedurlcategories is not None:
+        putdata['blockedurlcategories'] = blockedurlcategories
 
-    if urlCategoryListSize is not None:
-        if urlCategoryListSize == "topSites" or urlCategoryListSize == "fullList":
-            putdata['urlCategoryListSize'] = format(str(urlCategoryListSize))
+    if urlcategorylistsize is not None:
+        if urlcategorylistsize == "topsites" or urlcategorylistsize == "fulllist":
+            putdata['urlcategorylistsize'] = format(str(urlcategorylistsize))
         else:
             pass
 
@@ -1659,7 +1661,6 @@ def updatecontentfilter(apikey, networkid, allowedUrlPatterns=None, blockedUrlPa
 # https://api.meraki.com/api_docs#list-the-devices-in-a-network
 def getnetworkdevices(apikey, networkid, suppressprint=False):
     """
-
     Args:
         apikey: User's Meraki API Key
         networkid: ID field of target network to list devices from
@@ -2107,7 +2108,6 @@ def updatessidl3fwrules(apikey, networkid, ssidnum, fwrules,
 
 
 # ### GROUP POLICIES ###
-
 # List the group policies in a network
 # https://api.meraki.com/api_docs#list-the-group-policies-in-a-network
 def getgrouppolicies(apikey, networkid, suppressprint=False):
@@ -4491,7 +4491,7 @@ def delswitchfromstack(apikey, networkid, switchstackid, serials, suppressprint=
         'Content-Type': 'application/json'
     }
     postdata = {
-        'serial': format(str(serial))
+        'serial': format(str(serials))
     }
     postdata = json.dumps(postdata)
     dashboard = requests.post(posturl, data=postdata, headers=headers)
