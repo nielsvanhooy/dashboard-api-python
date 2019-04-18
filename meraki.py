@@ -4155,11 +4155,11 @@ def getuplinksettings(apikey, networkid, suppressprint=False):
 
 # Updates the uplink settings for your MX network
 # https://n3.meraki.com/2PNL0BEECH01-Mec/n/oVskmad/manage/support/api_docs#updates-the-uplink-settings-for-your-mx-network
-def updateuplinksettings(apikey, networkid, limitUp, limitDown, suppressprint=False):
+def updateuplinksettings(apikey, networkid, interface, limitUp, limitDown, suppressprint=False):
     """
+    :param interface: use wan1, wan2 or cellular
     :param limitUp: The maximum upload limit (integer, in Kbps). null indicates no limit
     :param limitDown: The maximum download limit (integer, in Kbps). null indicates no limit
-    :return:
     """
     calltype = 'Update Uplink Settings'
     puturl = '{0}/networks/{1}/uplinkSettings'.format(str(base_url), str(networkid))
@@ -4168,8 +4168,12 @@ def updateuplinksettings(apikey, networkid, limitUp, limitDown, suppressprint=Fa
         'Content-Type': 'application/json'
     }
     putdata = {
-        'id': format(str(limitUp)),
-        'networkId': format(str(limitDown))
+      "bandwidthLimits": {
+        f"{str(interface)}": {
+          "limitUp": int(limitUp),
+          "limitDown": int(limitDown)
+        },
+      }
     }
     putdata = json.dumps(putdata)
     dashboard = requests.put(puturl, data=putdata, headers=headers)
