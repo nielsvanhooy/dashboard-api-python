@@ -4138,8 +4138,8 @@ def updateswitchport(apikey, serialnum, portnum, name=None, tags=None,
 
 # Returns the uplink settings for an MX network
 # https://n3.meraki.com/2PNL0BEECH01-Mec/n/oVskmad/manage/support/api_docs#returns-the-uplink-settings-for-your-mx-network
-def getuplinkstatistics(apikey, networkid, suppressprint=False):
-    calltype = 'Uplink Statistics'
+def getuplinksettings(apikey, networkid, suppressprint=False):
+    calltype = 'Uplink Settings'
     geturl = '{0}/networks/{1}/uplinkSettings'.format(str(base_url), str(networkid))
     headers = {
         'x-cisco-meraki-api-key': format(str(apikey)),
@@ -4155,13 +4155,13 @@ def getuplinkstatistics(apikey, networkid, suppressprint=False):
 
 # Updates the uplink settings for your MX network
 # https://n3.meraki.com/2PNL0BEECH01-Mec/n/oVskmad/manage/support/api_docs#updates-the-uplink-settings-for-your-mx-network
-def updateuplinkstatistics(apikey, networkid, limitUp, limitDown, suppressprint=False):
+def updateuplinksettings(apikey, networkid, limitUp, limitDown, suppressprint=False):
     """
     :param limitUp: The maximum upload limit (integer, in Kbps). null indicates no limit
     :param limitDown: The maximum download limit (integer, in Kbps). null indicates no limit
     :return:
     """
-    calltype = 'Update HTTP Server'
+    calltype = 'Update Uplink Settings'
     puturl = '{0}/networks/{1}/uplinkSettings'.format(str(base_url), str(networkid))
     headers = {
         'x-cisco-meraki-api-key': format(str(apikey)),
