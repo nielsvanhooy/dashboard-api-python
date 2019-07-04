@@ -1657,6 +1657,32 @@ def updatecontentfilter(apikey, networkid, allowedurlpatterns=None, blockedurlpa
 
 
 # ### DEVICES ###
+# list the devices in an organization
+def getorgdevices(apikey, orgid, suppressprint=False):
+    """
+    Args:
+        apikey: User's Meraki API Key
+        orgid: ID field of target organization to list devices from
+        suppressprint:
+
+    Returns:
+/organizations/{organizationId}/devices
+    """
+    calltype = 'Network'
+    geturl = '{0}/organizations/{1}/devices'.format(str(base_url), str(orgid))
+    headers = {
+        'x-cisco-meraki-api-key': format(str(apikey)),
+        'Content-Type': 'application/json'
+    }
+    dashboard = requests.get(geturl, headers=headers)
+    #
+    # Call return handler function to parse Dashboard response
+    #
+    result = __returnhandler(
+        dashboard.status_code, dashboard.text, calltype, suppressprint)
+    return result
+
+
 # List the devices in a network
 # https://api.meraki.com/api_docs#list-the-devices-in-a-network
 def getnetworkdevices(apikey, networkid, suppressprint=False):
