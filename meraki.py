@@ -4254,10 +4254,11 @@ def getvlandetail(apikey, networkid, vlanid, suppressprint=False):
 # https://api.meraki.com/api_docs#update-a-vlan
 def updatevlan(apikey, networkid, vlanid, name=None, subnet=None, mxip=None,
                fixedipassignments=None, reservedipranges=None,
-               vpnnatsubnet=None, dnsnameservers=None, suppressprint=False):
+               vpnnatsubnet=None, dnsnameservers=None, dhcphandling=None, dhcprelayserverips=None, suppressprint=False):
     # fixedipassignments = {'13:37:de:ad:be:ef': {'ip': '192.168.1.5',
     # 'name': 'fixed'}} reservedipranges = [{'start': '192.168.1.20',
     # 'end': '192.168.1.30', 'comment': 'reserved'}]
+    # dhcprelayserverips = ['192.168.2.6', '172.27.29.3']
     calltype = 'VLAN'
     puturl = '{0}/networks/{1}/vlans/{2}'.format(
         str(base_url), str(networkid), str(vlanid))
@@ -4280,6 +4281,10 @@ def updatevlan(apikey, networkid, vlanid, name=None, subnet=None, mxip=None,
         putdata['vpnNatSubnet'] = format(str(vpnnatsubnet))
     if dnsnameservers is not None:
         putdata['dnsNameservers'] = format(str(dnsnameservers))
+    if dhcphandling is not None:
+        putdata['dhcpHandling'] = format(str(dhcphandling))
+    if dhcprelayserverips is not None:
+        putdata['dhcpRelayServerIps'] = dhcprelayserverips
 
     putdata = json.dumps(putdata)
     dashboard = requests.put(puturl, data=putdata, headers=headers)
@@ -4340,6 +4345,43 @@ def delvlan(apikey, networkid, vlanid, suppressprint=False):
     #
     result = __returnhandler(
         dashboard.status_code, dashboard.text, calltype, suppressprint)
+    return result
+
+	# Return a VLAN
+# https://dashboard.meraki.com/api_docs#returns-the-enabled-status-of-vlans-for-the-network
+def getvlanstate(apikey, networkid, suppressprint=False):
+    calltype = 'VLAN Detail'
+    geturl = '{0}/networks/{1}/vlansEnabledState'.format(
+        str(base_url), str(networkid))
+    headers = {
+        'x-cisco-meraki-api-key': format(str(apikey)),
+        'Content-Type': 'application/json'
+    }
+    dashboard = requests.get(geturl, headers=headers)
+    #
+    # Call return handler function to parse Dashboard response
+    #
+    result = __returnhandler(
+        dashboard.status_code, dashboard.text, calltype, suppressprint)
+    return result
+# Enables VLAN on the Meraki MX
+# https://dashboard.meraki.com/api_docs#enable/disable-vlans-for-the-given-network
+def updatevlanstate(apikey, networkid, state, suppressprint=False):
+    calltype = 'VLAN'
+    posturl = '{0}/networks/{1}/vlansEnabledState'.format(str(base_url), str(networkid))
+    headers = {
+        'x-cisco-meraki-api-key': format(str(apikey)),
+        'Content-Type': 'application/json'
+    }
+    putdata = {
+        'enabled': state
+    }
+    putdata = json.dumps(putdata)
+    dashboard = requests.put(posturl, data=putdata, headers=headers)
+    #
+    # Call return handler function to parse Dashboard response
+    #
+    result = __returnhandler(dashboard.status_code, dashboard.text, calltype, suppressprint)
     return result
 
 
@@ -4505,6 +4547,26 @@ def updatealertsettings(apikey, networkid, httpserverid, suppressprint=False):
         dashboard.status_code, dashboard.text, calltype, suppressprint)
     return result
 
+# Update a network alert
+# https://api.meraki.com/api_docs#update-the-alert-configuration-for-this-network
+def updatealertsettingsdict(apikey, networkid, alerts, suppressprint=False):
+    calltype = 'Network'
+    puturl = '{0}/networks/{1}/alertSettings'.format(str(base_url), str(networkid))
+    headers = {
+        'x-cisco-meraki-api-key': format(str(apikey)),
+        'Content-Type': 'application/json'
+    }
+    putdata = {}
+    if alerts['defaultDestinations'] is not None:
+        putdata['defaultDestinations'] = alerts['defaultDestinations']
+    if alerts['alerts'] is not []:
+        putdata['alerts'] = alerts['alerts']
+    putdata = json.dumps(putdata)
+    dashboard = requests.put(puturl, data=putdata, headers=headers)
+    result = __returnhandler(
+        dashboard.status_code, dashboard.text, calltype, suppressprint)
+    return result
+
 
 # Switchstacks
 def getswitchstacks(apikey, networkid, suppressprint=False):
@@ -4614,3 +4676,54 @@ def deleteswitchstack(apikey, networkid, switchstackid, suppressprint=False):
     result = __returnhandler(
         dashboard.status_code, dashboard.text, calltype, suppressprint)
     return result
+
+
+# ### SWITCH PORTS ###
+
+# Return the management interface settings for a device
+# https://dashboard.meraki.com/api_docs#return-the-management-interface-settings-for-a-device
+def getdevmgmt(apikey, networkid,serial, suppressprint=False):
+    calltype = "Managment Interface"
+    geturl = "{0}/networks/{1}/devices/{2}/managementInterfaceSettings".format(
+        str(base_url), str(networkid), str(serial)
+    )
+    headers = {
+        "x-cisco-meraki-api-key": format(str(apikey)),
+        "Content-Type": "application/json",
+    }
+    dashboard = requests.get(geturl, headers=headers)
+    result = __returnhandler(
+        dashboard.status_code, dashboard.text, calltype, suppressprint
+    )
+    return result
+
+# Device Management
+
+# Update the Managment interface configuration
+# https://dashboard.meraki.com/api_docs#update-the-management-interface-settings-for-a-device
+def updatedevmgmt(
+    apikey, networkid,serial, mgmtsettings, suppressprint=False
+):
+    # mgmtsettings = {'wan1': {'0': {'wanEnabled': 'enabled'},
+    #                                 '2': {'usingStaticIp': False}}}
+    # mgmtsettings = {'wan2': {'0': {'wanEnabled': 'enabled'},
+    #                                 '2': {'usingStaticIp': True}}}
+    # mgmtsettings = {'wan1': {'usingStaticIp': True, 'staticIp': '10.0.0.2', 'staticSubnetMask': '255.255.255.0', 'staticGatewayIp': '10.0.0.1', 'staticDns': ['192.168.1.1', '192.168.1.2'], 'vlan': 2}}
+
+    calltype = "Managment Interface"
+    puturl = "{0}/networks/{1}/devices/{2}/managementInterfaceSettings".format(
+        str(base_url), str(networkid), str(serial)
+    )
+
+    headers = {
+        "x-cisco-meraki-api-key": format(str(apikey)),
+        "Content-Type": "application/json",
+    }
+
+    putdata = mgmtsettings
+    dashboard = requests.put(puturl, data=json.dumps(putdata), headers=headers)
+    result = __returnhandler(
+        dashboard.status_code, dashboard.text, calltype, suppressprint
+    )
+    return result
+
